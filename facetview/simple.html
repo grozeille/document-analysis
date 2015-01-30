@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>FacetView</title>
+
+<!--
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/css/bootstrap.min.css">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/css/bootstrap-theme.min.css">
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/js/bootstrap.min.js"></script>
+-->
+  
+
+  <link rel="stylesheet" href="vendor/bootstrap/css/bootstrap.min.css">
+  <script type="text/javascript" src="vendor/bootstrap/js/bootstrap.min.js"></script>  
+
+  
+  <script type="text/javascript" src="vendor/jquery/1.7.1/jquery-1.7.1.min.js"></script>
+  <script type="text/javascript" src="vendor/linkify/1.0/jquery.linkify-1.0-min.js"></script>  
+  
+  <link rel="stylesheet" href="vendor/jquery-ui-1.8.18.custom/jquery-ui-1.8.18.custom.css">
+  <script type="text/javascript" src="vendor/jquery-ui-1.8.18.custom/jquery-ui-1.8.18.custom.min.js"></script>
+
+  <script type="text/javascript" src="jquery.facetview.js"></script>
+
+  <link rel="stylesheet" href="css/facetview.css">
+
+  <script type="text/javascript">
+jQuery(document).ready(function($) {
+  var resdisplay = [
+                [
+                    {
+                        "pre": "<a href='",
+                        "field": "path",
+                        "post": "'>"
+                    },
+                    {
+                        "pre": "",
+                        "field": "file",
+                        "post": "</a>"
+                    }
+                ],
+                [
+                    {
+                        "field": "author"
+                    }
+                ],
+                [
+                    {
+                        "pre": "<h3>",
+                        "field": "parsed_title_0",
+                        "post": "</h3>"
+                    }
+                ],
+                [
+                    {
+                        "pre": "<strong><span style='font-size: 16px;margin-top:5px;'>",
+                        "field": "parsed_title_1",
+                        "post": "</span></strong>"
+                    }
+                ],
+                [
+                    {
+                        "pre": "<strong><span style='font-size: 12px;margin-top:5px;'>",
+                        "field": "parsed_title_2",
+                        "post": "</span></strong>"
+                    }
+                ],
+                [
+                    {
+                        "pre": "<strong><em>",
+                        "field": "title",
+                        "post": "</em></strong>"
+                    }
+                ],
+                [
+                    {
+                        "pre": "<span class='label label-info'>Group: ",
+                        "field": "cluster",
+                        "post": "</span>"
+                    }
+                ],
+                [
+                    {
+                        "pre": "nb page: ",
+                        "field": "pages"
+                    }
+                ]
+            ];
+
+
+  $('.facet-view-simple').facetview({
+    search_url: 'http://localhost:9200/documents/document/_search?',
+    search_index: 'elasticsearch',
+    result_display: resdisplay,
+    facets: [
+        {'field': 'Author' },
+        {'field': 'Creation-Date' },
+        {'field': 'body' },
+        {'field': 'cluster', 'size' : '500', 'order': 'count' }
+    ],
+    paging: {
+      size: 10
+    },
+    default_operator: "AND",
+    default_freetext_fuzzify: "*"/*,
+    predefined_filters: {
+        'owner.exact': {'term':{'owner.exact':'test'}}
+    }*/
+  });
+});
+  </script>
+
+<style type="text/css">
+.facet-view-simple{
+    width:1024px;
+    height:600px;
+    margin:20px auto 0 auto;
+}
+</style>
+
+</head>
+<body>
+
+    <div class="facet-view-simple"></div>
+
+</body>
+</html>

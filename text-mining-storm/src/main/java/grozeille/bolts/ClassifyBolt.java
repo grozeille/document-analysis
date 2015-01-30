@@ -7,58 +7,72 @@ import backtype.storm.topology.base.BaseBasicBolt;
 import backtype.storm.tuple.Tuple;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import grozeille.WordWithStat;
 import org.apache.commons.lang.mutable.MutableInt;
-import org.apache.lucene.analysis.TokenStream;
-import org.apache.lucene.analysis.fr.FrenchAnalyzer;
-import org.apache.lucene.analysis.tokenattributes.CharTermAttribute;
-import org.apache.lucene.analysis.tokenattributes.OffsetAttribute;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.*;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.regex.Pattern;
+import java.util.*;
 
 /**
  * Created by Mathias on 18/01/2015.
  */
-public class WordCountByDocBolt extends BaseBasicBolt {
-    private static final Logger LOG = LoggerFactory.getLogger(WordCountByDocBolt.class);
+public class ClassifyBolt extends BaseBasicBolt {
+    private static final Logger LOG = LoggerFactory.getLogger(ClassifyBolt.class);
 
-    public static final String OUTPUT = "wordcountbydocbolt.output";
-
-    private static final Pattern numberPattern = Pattern.compile("^[0-9]+$");
+    public static final String INPUT = "classify.input";
+    public static final String CLASS_RESULT = "classify.clusteringResult";
+    public static final String OUTPUT = "classify.output";
 
     private transient String outputFilePath;
     private transient FileOutputStream fos;
     private transient DataOutputStream dos;
     private transient OutputStreamWriter writer;
+    private transient List<String> clusteringResult;
 
     private transient ObjectMapper objectMapper;
-    private transient FrenchAnalyzer analyzer;
+    private transient Map<String, List<Map<String, MutableInt>>> clusters;
 
     @Override
     public void prepare(Map stormConf, TopologyContext context) {
         super.prepare(stormConf, context);
         objectMapper = new ObjectMapper();
-        analyzer = new FrenchAnalyzer();
+        clusteringResult = new ArrayList<>();
+
+        clusters = new HashMap<>();
 
         String outputPath = (String)stormConf.get(OUTPUT);
+        String classResultPath= (String)stormConf.get(CLASS_RESULT);
+
         try {
+
+            BufferedInputStream is = new BufferedInputStream(new FileInputStream(classResultPath));
+            BufferedReader reader = new BufferedReader(new InputStreamReader(is));
+            String line = null;
+            do{
+                line = reader.readLine();
+                clusteringResult.add(line);
+            }while(line != null);
+            reader.close();
+
+            // création du fichier en sortie
             File rootPath = new File(outputPath);
             if(!rootPath.exists()){
                 rootPath.mkdirs();
             }
 
-            outputFilePath = new File(outputPath, "countperdoc_" + context.getThisTaskId() + ".json").toPath().toString();
+            outputFilePath = new File(outputPath, "class_" + context.getThisTaskId() + ".json").toPath().toString();
 
             fos = new FileOutputStream(outputFilePath);
             dos = new DataOutputStream(fos);
             writer = new OutputStreamWriter(dos);
+
         } catch (FileNotFoundException e) {
-            LOG.error("Unable to write file", e);
+            LOG.error("Unable to prepare", e);
             System.exit(-1);
+        } catch (IOException e) {
+            LOG.error("Unable to prepare", e);
         }
     }
 
@@ -79,56 +93,43 @@ public class WordCountByDocBolt extends BaseBasicBolt {
             return;
         }
 
-        TypeReference<HashMap<String,Object>> typeRef = new TypeReference<HashMap<String,Object>>() {};
+        TypeReference<LinkedHashMap<String,Object>> typeRef = new TypeReference<LinkedHashMap<String,Object>>() {};
 
         try {
             HashMap<String,Object> o = objectMapper.readValue(json, typeRef);
+            Map<String, Integer> count = (Map<String, Integer>)o.get("count");
             String path = (String)o.get("path");
-            String body = (String)o.get("body");
+/*
+            List<Map<String, MutableInt>>
 
-            if(body == null){
-                return;
+            for(Map.Entry<String, Object> e : o.entrySet()){
+                String key = e.getKey();
+
             }
 
-            TokenStream tokenStream = analyzer.tokenStream("", new StringReader(body));
-            OffsetAttribute offsetAttribute = tokenStream.addAttribute(OffsetAttribute.class);
-            CharTermAttribute charTermAttribute = tokenStream.addAttribute(CharTermAttribute.class);
 
-            tokenStream.reset();
-            while (tokenStream.incrementToken()) {
-                int startOffset = offsetAttribute.startOffset();
-                int endOffset = offsetAttribute.endOffset();
-                String term = charTermAttribute.toString();
+            for(WordWithStat word : wordcount){
 
-                // skip les chaines avec uniquement des numéros
-                if(numberPattern.matcher(term).matches() || term.length() < 2){
-                    continue;
+                Integer numOfOccurrences = count.get(word.getWord());
+                if(numOfOccurrences == null){
+                    numOfOccurrences = 0;
                 }
+                Integer totalTermsInDocument = count.size();
 
-                MutableInt count = wordCount.get(term.toUpperCase());
-                if(count == null){
-                    count = new MutableInt(0);
-                    wordCount.put(term.toUpperCase(), count);
-                }
-                count.increment();
+                float tf = numOfOccurrences.floatValue() / (Float.MIN_VALUE + totalTermsInDocument.floatValue());
+                float idf = (float) Math.log10(totalDocs.floatValue() / (Float.MIN_VALUE + word.getStats().getDocuments().floatValue()));
+                float tfidf = (tf * idf);
+                allTfidf.add(tfidf);
             }
 
-            HashMap<String, Object> jsonData = new HashMap<>();
-            jsonData.put("path", path);
-            HashMap<String, Object> jsonWordCount = new HashMap<>();
-            jsonData.put("count", jsonWordCount);
 
-            for(Map.Entry<String, MutableInt> entries : wordCount.entrySet()){
-                jsonWordCount.put(entries.getKey(), entries.getValue().getValue());
+            writer.append(path);
+            for(Float tfidf : allTfidf){
+                writer.append("\t").append(tfidf.toString());
             }
-
-            if(!wordCount.isEmpty()) {
-                String jsonLine = objectMapper.writeValueAsString(jsonData);
-                writer.append(jsonLine).append("\n");
-                writer.flush();
-            }
-
-            tokenStream.close();
+            writer.append("\n");
+            writer.flush();
+*/
         } catch (IOException e) {
             LOG.error("Unable to parse Json\n"+json, e);
             collector.reportError(e);

@@ -4,29 +4,29 @@ import backtype.storm.Config;
 import backtype.storm.LocalCluster;
 import backtype.storm.StormSubmitter;
 import backtype.storm.topology.TopologyBuilder;
-import grozeille.bolts.DocumentExtractorBolt;
-import grozeille.bolts.JsonWriterBolt;
-import grozeille.bolts.WordCountByDocBolt;
+import grozeille.bolts.TfidfByDocBolt;
+import grozeille.bolts.WordCountAllBolt;
 import grozeille.spouts.JsonFileSpout;
-import grozeille.spouts.LocalFileSpout;
-import storm.trident.TridentTopology;
 
 /**
  * Created by Mathias on 18/01/2015.
  */
-public class WordCountTopology {
+public class TfIdfTopology {
     public static void main(String[] args) throws Exception {
 
         TopologyBuilder builder = new TopologyBuilder();
 
         builder.setSpout("json", new JsonFileSpout(), 1);
 
-        builder.setBolt("count", new WordCountByDocBolt(), 1).shuffleGrouping("json");
+        builder.setBolt("count", new TfidfByDocBolt(), 1).shuffleGrouping("json");
 
         Config conf = new Config();
         conf.setDebug(false);
-        conf.put(JsonFileSpout.INPUT, "/Users/mathias/Work/test-amina/output-parsed2");
-        conf.put(WordCountByDocBolt.OUTPUT, "/Users/mathias/Work/test-amina/output-count");
+        conf.put(JsonFileSpout.INPUT, "/Users/mathias/Work/test-amina/output-count");
+        conf.put(TfidfByDocBolt.OUTPUT, "/Users/mathias/Work/test-amina/output-tfidf");
+        conf.put(TfidfByDocBolt.WORDCOUNT, "/Users/mathias/Work/test-amina/output-count-all/allwords_2.json");
+        conf.put(TfidfByDocBolt.MIN, 10);
+        //conf.setMaxSpoutPending(8);
 
 
         if (args != null && args.length > 0) {

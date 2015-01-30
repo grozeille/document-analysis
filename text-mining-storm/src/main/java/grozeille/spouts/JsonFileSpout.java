@@ -107,6 +107,7 @@ public class JsonFileSpout extends BaseRichSpout {
         if(reader == null){
 
             if(cptFile >= files.size()){
+                spoutOutputCollector.emit(new Values("flush"));
                 finished = true;
                 return;
             }
@@ -134,6 +135,9 @@ public class JsonFileSpout extends BaseRichSpout {
         } catch (IOException e) {
             LOG.error("Unable to read line", e);
         }
+        catch(Exception e){
+            LOG.error("Unable to read line", e);
+        }
 
         if(json == null){
 
@@ -145,7 +149,6 @@ public class JsonFileSpout extends BaseRichSpout {
             reader = null;
         }
         else {
-            LOG.info("emit "+currentFile+"_"+cptLine);
             spoutOutputCollector.emit(new Values(json), currentFile+"_"+cptLine);
         }
     }
