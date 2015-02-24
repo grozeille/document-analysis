@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en" ng-app="searchApp">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <!-- Bootstrap -->
+    <link href="css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+      <script src="https://oss.maxcdn.com/html5shiv/3.7.2/html5shiv.min.js"></script>
+      <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+    <style>
+      body {
+        padding-top: 20px;
+        padding-bottom: 20px;
+      }
+      #search {
+        padding-bottom: 50px;
+      }
+      .highlight {
+        background-color: #faebcc;
+        font-weight: bold;
+        color: #8a6d3b;
+      }
+      #logo {
+        display: block;
+        margin-left: auto; 
+        margin-right: auto;
+        padding-bottom: 10px;
+      }
+    </style>
+  </head>
+  <body ng-controller="SearchCtrl">
+    <div class="container">
+      <div class="row">
+      <div class="col-lg-12"><img id="logo" src="img/ineodoc_small.jpg"/></div>
+      </div>
+
+
+      <div class="row" id="search">
+        <div class="col-lg-offset-2 col-lg-8">
+          <form ng-submit="search()">
+          <div class="input-group">
+            <input id="search-txt" type="text" class="form-control" placeholder="Rechercher..." value="Diffusion" ng-model="query">
+            <span class="input-group-btn">
+              <button id="search-btn" type="submit" class="btn btn-primary"> <span class="glyphicon glyphicon-search" aria-hidden="true"></span> Rechercher</button>
+            </span>
+          </div><!-- /input-group -->
+          </form>
+        </div>
+        <div class="col-lg-2">
+        </div>
+      </div>
+
+      <div class="row">
+      <div class="col-lg-12">
+
+        <div class="media" ng-repeat="result in results">
+          <div class="media-body">
+            <h4 class="media-heading"><a href="{{result.path}}" target="_blank"><span ng-bind-html="result.id"></span></a></h4>
+            <p ng-bind-html="result.text"></p>
+          </div>
+          <hr>
+        </div>
+      
+      </div>
+      </div>      
+    
+    </div> <!-- /container -->
+
+
+    <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>
+    <!-- Include all compiled plugins (below), or include individual files as needed -->
+    <script src="js/bootstrap.min.js"></script>
+    <script src="js/angular.min.js"></script>
+    <script src="js/angular-sanitize.min.js"></script>
+    <script src="js/controller.js"></script>
+    
+  </body>
+</html>
